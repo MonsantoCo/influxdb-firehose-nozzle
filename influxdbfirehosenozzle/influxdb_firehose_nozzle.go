@@ -12,7 +12,7 @@ import (
 	"github.com/MonsantoCo/influxdb-firehose-nozzle/influxdbclient"
 	"github.com/MonsantoCo/influxdb-firehose-nozzle/nozzleconfig"
 	"github.com/gorilla/websocket"
-	"github.com/pivotal-golang/localip"
+	"code.cloudfoundry.org/localip"
 	"github.com/MonsantoCo/influxdb-firehose-nozzle/cfinstanceinfoapi"
 )
 

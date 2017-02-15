@@ -1,31 +1,69 @@
 {
 	"ImportPath": "github.com/MonsantoCo/influxdb-firehose-nozzle",
-	"GoVersion": "go1.5.3",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v75",
 	"Deps": [
 		{
+			"ImportPath": "code.cloudfoundry.org/localip",
+			"Rev": "419fe99d5b6f505bf75d5f8abaf17c263c6f8bdc"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry-incubator/uaago",
-			"Rev": "5253fdf54e4a464366e5ffa8e5f456f5f1e50a2f"
+			"Rev": "1db9cfd27865007e07ffd5914c0fdf5fb7fc09ba"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/gosteno",
+			"Comment": "scotty_09012012-42-g0c8581c",
+			"Rev": "0c8581caea35ac903728230e447792e2365dcc34"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/gosteno/syslog",
+			"Comment": "scotty_09012012-42-g0c8581c",
+			"Rev": "0c8581caea35ac903728230e447792e2365dcc34"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/noaa",
-			"Rev": "8c9fd92c47a3ef39993b2f0496cc25992f87c01a"
+			"Comment": "v2.0.0-5-g9e08723",
+			"Rev": "9e087230f2fedf46641976e14cbc41fe6a2bbec8"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/noaa/consumer",
+			"Comment": "v2.0.0-5-g9e08723",
+			"Rev": "9e087230f2fedf46641976e14cbc41fe6a2bbec8"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/noaa/consumer/internal",
+			"Comment": "v2.0.0-5-g9e08723",
+			"Rev": "9e087230f2fedf46641976e14cbc41fe6a2bbec8"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/noaa/errors",
+			"Comment": "v2.0.0-5-g9e08723",
+			"Rev": "9e087230f2fedf46641976e14cbc41fe6a2bbec8"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/sonde-go/events",
-			"Rev": "3d364d9ed49fee2f9fdcba278199127462cae3c4"
+			"Rev": "78019103037ae46207993c8816e970d85bf1a9e4"
+		},
+		{
+			"ImportPath": "github.com/gogo/protobuf/gogoproto",
+			"Comment": "v0.3-148-gf8ff699",
+			"Rev": "f8ff6993ff70a52b000ba3a0dc7e59b93ed3ff0d"
 		},
 		{
 			"ImportPath": "github.com/gogo/protobuf/proto",
-			"Comment": "v0.1-108-g9dc5109",
-			"Rev": "9dc510915846dd5a05607d3b5bf41f5ca5cce972"
+			"Comment": "v0.3-148-gf8ff699",
+			"Rev": "f8ff6993ff70a52b000ba3a0dc7e59b93ed3ff0d"
+		},
+		{
+			"ImportPath": "github.com/gogo/protobuf/protoc-gen-gogo/descriptor",
+			"Comment": "v0.3-148-gf8ff699",
+			"Rev": "f8ff6993ff70a52b000ba3a0dc7e59b93ed3ff0d"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "3986be78bf859e01f01af631ad76da5b269d270c"
-		},
-		{
-			"ImportPath": "github.com/pivotal-golang/localip",
-			"Rev": "eca2e05f8384dd47fd88604af5bcf2321fa6d15e"
+			"Comment": "v1.1.0-21-g804cb60",
+			"Rev": "804cb600d06b10672f2fbc0a336a7bee507a428e"
 		}
 	]
 }
