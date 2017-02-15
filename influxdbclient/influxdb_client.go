@@ -14,7 +14,7 @@ import (
 
         "github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/sonde-go/events"
-	"github.com/evoila/influxdb-firehose-nozzle/cfinstanceinfoapi"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/cfinstanceinfoapi"
 )
 
 type Client struct {

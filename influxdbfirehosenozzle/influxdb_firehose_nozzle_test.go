@@ -3,7 +3,7 @@ package influxdbfirehosenozzle_test
 import (
         "bytes"
 
-	. "github.com/evoila/influxdb-firehose-nozzle/testhelpers"
+	. "github.com/MonsantoCo/influxdb-firehose-nozzle/testhelpers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -12,10 +12,10 @@ import (
 
 	"github.com/cloudfoundry/sonde-go/events"
         "github.com/cloudfoundry/gosteno"
-	"github.com/evoila/influxdb-firehose-nozzle/influxdbclient"
-	"github.com/evoila/influxdb-firehose-nozzle/influxdbfirehosenozzle"
-	"github.com/evoila/influxdb-firehose-nozzle/nozzleconfig"
-	"github.com/evoila/influxdb-firehose-nozzle/uaatokenfetcher"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/influxdbclient"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/influxdbfirehosenozzle"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/nozzleconfig"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/uaatokenfetcher"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 )

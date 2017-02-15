@@ -9,11 +9,11 @@ import (
 	noaaerrors "github.com/cloudfoundry/noaa/errors"
         "github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/sonde-go/events"
-	"github.com/evoila/influxdb-firehose-nozzle/influxdbclient"
-	"github.com/evoila/influxdb-firehose-nozzle/nozzleconfig"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/influxdbclient"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/nozzleconfig"
 	"github.com/gorilla/websocket"
 	"github.com/pivotal-golang/localip"
-	"github.com/evoila/influxdb-firehose-nozzle/cfinstanceinfoapi"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/cfinstanceinfoapi"
 )
 
 type InfluxDbFirehoseNozzle struct {

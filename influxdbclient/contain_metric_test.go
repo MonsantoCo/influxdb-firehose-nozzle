@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sort"
 	
-	"github.com/evoila/influxdb-firehose-nozzle/influxdbclient"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/influxdbclient"
 	"github.com/onsi/gomega/types"
 )
 

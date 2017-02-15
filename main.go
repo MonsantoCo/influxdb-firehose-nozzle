@@ -10,11 +10,11 @@ import (
 	"runtime/pprof"
 	"syscall"
 
-        "github.com/evoila/influxdb-firehose-nozzle/influxdbfirehosenozzle"
-        "github.com/evoila/influxdb-firehose-nozzle/nozzleconfig"
-        "github.com/evoila/influxdb-firehose-nozzle/logger"
-        "github.com/evoila/influxdb-firehose-nozzle/uaatokenfetcher"
-	"github.com/evoila/influxdb-firehose-nozzle/cfinstanceinfoapi"
+        "github.com/MonsantoCo/influxdb-firehose-nozzle/influxdbfirehosenozzle"
+        "github.com/MonsantoCo/influxdb-firehose-nozzle/nozzleconfig"
+        "github.com/MonsantoCo/influxdb-firehose-nozzle/logger"
+        "github.com/MonsantoCo/influxdb-firehose-nozzle/uaatokenfetcher"
+	"github.com/MonsantoCo/influxdb-firehose-nozzle/cfinstanceinfoapi"
 )
 
 var (
