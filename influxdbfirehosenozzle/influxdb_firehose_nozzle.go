@@ -64,6 +64,7 @@ func (d *InfluxDbFirehoseNozzle) createClient() {
 	d.client = influxdbclient.New(
 		d.config.InfluxDbUrl,
  		d.config.InfluxDbDatabase,
+ 		d.config.InfluxDbRP,
 		d.config.InfluxDbUser,
 		d.config.InfluxDbPassword,
 		d.config.InfluxDbSslSkipVerify,

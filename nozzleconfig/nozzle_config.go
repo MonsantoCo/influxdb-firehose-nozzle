@@ -16,6 +16,7 @@ type NozzleConfig struct {
 	FirehoseSubscriptionID string
 	InfluxDbUrl            string
 	InfluxDbDatabase       string
+	InfluxDbRP             string
 	InfluxDbUser           string
 	InfluxDbPassword       string
 	InfluxDbSslSkipVerify  bool
@@ -49,6 +50,7 @@ func Parse(configPath string) (*NozzleConfig, error) {
 	overrideWithEnvVar("NOZZLE_FIREHOSESUBSCRIPTIONID", &config.FirehoseSubscriptionID)
 	overrideWithEnvVar("NOZZLE_INFLUXDB_URL", &config.InfluxDbUrl)
 	overrideWithEnvVar("NOZZLE_INFLUXDB_DATABASE", &config.InfluxDbDatabase)
+	overrideWithEnvVar("NOZZLE_INFLUXDB_RP", &config.InfluxDbRP)
 	overrideWithEnvVar("NOZZLE_INFLUXDB_USER", &config.InfluxDbUser)
 	overrideWithEnvVar("NOZZLE_INFLUXDB_PASSWORD", &config.InfluxDbPassword)
 	overrideWithEnvBool("NOZZLE_INFLUXDB_SSL_SKIPVERIFY", &config.InfluxDbSslSkipVerify)

@@ -20,6 +20,7 @@ import (
 type Client struct {
 	url                   string
 	database              string
+	retentionpolicy       string
 	user                  string
 	password              string
 	allowSelfSigned       bool
@@ -58,7 +59,7 @@ type Point struct {
 	Value     float64
 }
 
-func New(url string, database string, user string, password string, allowSelfSigned bool, prefix string, deployment string, ip string, log *gosteno.Logger, appinfo map[string]cfinstanceinfoapi.AppInfo) *Client {
+func New(url string, database string, retentionpolicy string, user string, password string, allowSelfSigned bool, prefix string, deployment string, ip string, log *gosteno.Logger, appinfo map[string]cfinstanceinfoapi.AppInfo) *Client {
         ourTags := []string{
 		"deployment:" + deployment,
 		"ip:" + ip,
@@ -66,6 +67,7 @@ func New(url string, database string, user string, password string, allowSelfSig
 	return &Client{
 		url:             url,
 		database:        database,
+		retentionpolicy: retentionpolicy,
 		user:            user,
 		password:        password,
 		allowSelfSigned: allowSelfSigned,
@@ -281,7 +283,12 @@ func (c *Client) PostMetrics() error {
 }
 
 func (c *Client) seriesURL() string {
-	url := fmt.Sprintf("%s/write?db=%s&precision=s", c.url, c.database)
+	url := "empty"
+	if c.retentionpolicy != "" {
+		url = fmt.Sprintf("%s/write?db=%s&rp=%s&precision=s", c.url, c.database, c.retentionpolicy)
+	} else {
+		url = fmt.Sprintf("%s/write?db=%s&precision=s", c.url, c.database)
+	}
 	c.log.Infof("Using the following influx URL " + url)
 	return url
 }

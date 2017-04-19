@@ -124,6 +124,7 @@ parameters are supported
 | NOZZLE_FIREHOSESUBSCRIPTIONID | Subscription ID used when connecting to the firehose. Nozzles with the same subscription ID get a proportional share of the firehose |
 | NOZZLE_INFLUXDB_URL           | The influxdb API URL |
 | NOZZLE_INFLUXDB_DATABASE      | The database name used when publishing metrics to influxdb |
+| NOZZLE_INFLUXDB_RP            | If set, the database retention policy to used when publishing metrics to influxdb. Otherwise use the default DB retention policy |
 | NOZZLE_INFLUXDB_USER          | The username name used when publishing metrics to influxdb |
 | NOZZLE_INFLUXDB_PASSWORD      | The password name used when publishing metrics to influxdb |
 | NOZZLE_METRICPREFIX           | The metric prefix is prepended to all metrics flowing through the nozzle |
