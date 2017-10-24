@@ -7,9 +7,10 @@ Example application to enumerate all apps in a cloudfoundry enviornment and expo
 This application requires a UAA user with administrative access so it can enumerate cf applications across all orgs and spaces.  At a minimum you should configure the following parameters, either via enviornment variables or command line parameters:
 ```
   API_ADDRESS: https://api.cf.company.com
-  CF_USER: admin
-  SKIP_SSL: true
-  CF_PASSWORD: secret
+  CF_CLIENT_ID: <UUA ClientID with sufficent API level access>
+  CF_CLIENT_SECRET: <Secret for the UAA ClientSecret>
+  SKIP_SSL: false
+  FREQUENCY: 3
 ```
 
 ## Running

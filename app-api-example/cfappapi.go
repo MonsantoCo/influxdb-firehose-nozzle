@@ -19,19 +19,24 @@ var (
 		"Cloud Foundry API Address ($API_ADDRESS).",
 	)
         
-	User = flag.String(
-                "api.user", "", 
-                "Cloud Foundry API User ($CF_USER).",
+	ClientID = flag.String(
+                "api.id", "", 
+                "Cloud Foundry UAA ClientID ($CF_CLIENT_ID).",
         )
 
-	Password = flag.String(
-                "api.password", "", 
-                "Cloud Foundry API Password ($CF_PASSWORD).",
+	ClientSecret = flag.String(
+                "api.secret", "", 
+                "Cloud Foundry UAA ClientSecret ($CF_CLIENT_SECRET).",
         )
 
 	SkipSSL = flag.Bool(
                 "skip.ssl", false, 
                 "Disalbe SSL validation ($SKIP_SSL).",
+        )
+	
+	Frequency = flag.Uint(
+                "update.frequency", 3,
+                "SD Update frequency in minutes ($FREQUENCY).",
         )
 )
 
@@ -46,11 +51,17 @@ type AppInfo struct {
         Org   string `json:"org"`
 }
 
+type SpaceInfo struct {
+	Name             string `json:"name"`
+        OrgName		 string `json:"orgname"`
+}
+
 func overrideFlagsWithEnvVars() {
 	overrideWithEnvVar("API_ADDRESS", ApiAddress)
-	overrideWithEnvVar("CF_USER", User)
-	overrideWithEnvVar("CF_PASSWORD", Password)
+	overrideWithEnvVar("CF_CLIENT_ID", ClientID)
+	overrideWithEnvVar("CF_CLIENT_SECRET", ClientSecret)
 	overrideWithEnvBool("SKIP_SSL", SkipSSL)
+	overrideWithEnvUint("FREQUENCY", Frequency)
 }
 
 func overrideWithEnvVar(name string, value *string) {
@@ -87,7 +98,7 @@ func UpdateAppMap (client *cfclient.Client) {
 
    go GenAppMap(client)  
 
-   c := time.Tick(5 * time.Minute)
+   c := time.Tick(time.Duration(*Frequency) * time.Minute)
    for {
      select {
      case ch := <- request:
@@ -103,9 +114,32 @@ func UpdateAppMap (client *cfclient.Client) {
 
 func GenAppMap(client *cfclient.Client) {
 	log.Println("generating fresh app map")
-     	apps,err := client.ListApps()
+
+	apps,err := client.ListAppsByQuery(nil)
 	if err != nil {
 		log.Printf("Error generating list of apps from CF: %v", err)
+	}  
+
+	orgs,err := client.ListOrgs()
+        if err != nil {
+                log.Printf("Error generating list of orgs from CF: %v", err)
+        }
+
+	// create map of org guid to org name
+	orgmap := map[string]string{}
+	for _, org := range orgs {
+		orgmap[org.Guid] = org.Name
+	} 	
+
+        spaces,err := client.ListSpaces()
+        if err != nil {
+                log.Printf("Error generating list of spaces from CF: %v", err)
+        }
+
+	// create a map of space guid to space name and org name	
+	spacemap := map[string]SpaceInfo{}
+	for _, space := range spaces {
+		spacemap[space.Guid] = SpaceInfo { Name:space.Name , OrgName: orgmap[space.OrganizationGuid] }
 	}  
 
  	tempmap := make([]AppInfo,0)
@@ -113,8 +147,8 @@ func GenAppMap(client *cfclient.Client) {
  	for _, app := range apps {
 		tempapp.Name=app.Name
 		tempapp.Guid=app.Guid
-		tempapp.Space=app.SpaceData.Entity.Name
-		tempapp.Org=app.SpaceData.Entity.OrgData.Entity.Name
+		tempapp.Space=spacemap[app.SpaceGuid].Name
+		tempapp.Org=spacemap[app.SpaceGuid].OrgName
      
 		tempmap = append(tempmap, tempapp)
 	}
@@ -131,8 +165,8 @@ func main() {
 
   c := &cfclient.Config{
     ApiAddress:        *ApiAddress,
-    Username:          *User,
-    Password:          *Password,
+    ClientID:          *ClientID,
+    ClientSecret:      *ClientSecret,
     SkipSslValidation: *SkipSSL,
   }
   client, err := cfclient.NewClient(c)
