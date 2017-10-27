@@ -82,7 +82,7 @@ func (d *InfluxDbFirehoseNozzle) consumeFirehose(authToken string) {
 		&tls.Config{InsecureSkipVerify: d.config.SsLSkipVerify},
 		nil)
 	d.consumer.SetIdleTimeout(time.Duration(d.config.IdleTimeoutSeconds) * time.Second)
-	d.messages, d.errs = d.consumer.Firehose(d.config.FirehoseSubscriptionID, authToken)
+	d.messages, d.errs = d.consumer.FilteredFirehose(d.config.FirehoseSubscriptionID, authToken, consumer.Metrics)
 }
 
 func (d *InfluxDbFirehoseNozzle) postToInfluxDb() error {
