@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"time"
 	"strings"
+	"sync"
 
 	"github.com/cloudfoundry/noaa/consumer"
 	noaaerrors "github.com/cloudfoundry/noaa/errors"
@@ -25,18 +26,20 @@ type InfluxDbFirehoseNozzle struct {
 	client           *influxdbclient.Client
         log              *gosteno.Logger
 	appinfo          map[string]cfinstanceinfoapi.AppInfo
+	amutex		 *sync.RWMutex
 }
 
 type AuthTokenFetcher interface {
 	FetchAuthToken() string
 }
 
-func NewInfluxDbFirehoseNozzle(config *nozzleconfig.NozzleConfig, tokenFetcher AuthTokenFetcher, log *gosteno.Logger, appinfo map[string]cfinstanceinfoapi.AppInfo) *InfluxDbFirehoseNozzle {
+func NewInfluxDbFirehoseNozzle(config *nozzleconfig.NozzleConfig, tokenFetcher AuthTokenFetcher, log *gosteno.Logger, appinfo map[string]cfinstanceinfoapi.AppInfo, amutex *sync.RWMutex) *InfluxDbFirehoseNozzle {
 	return &InfluxDbFirehoseNozzle{
 		config:           config,
 		authTokenFetcher: tokenFetcher,
                 log:              log,
 		appinfo:          appinfo,
+		amutex:	 	  amutex,
 	}
 }
 
@@ -50,7 +53,7 @@ func (d *InfluxDbFirehoseNozzle) Start() error {
 	d.log.Info("Starting InfluxDb Firehose Nozzle...")
 	d.createClient()
 	d.consumeFirehose(authToken)
-	err := d.postToInfluxDb()
+	err := d.postToInfluxDb(d.amutex)
 	d.log.Info("InfluxDb Firehose Nozzle shutting down...")
 	return err
 }
@@ -73,6 +76,7 @@ func (d *InfluxDbFirehoseNozzle) createClient() {
  		ipAddress,
  		d.log,
 		d.appinfo,
+		d.amutex,
  	)
 }
 
@@ -85,7 +89,7 @@ func (d *InfluxDbFirehoseNozzle) consumeFirehose(authToken string) {
 	d.messages, d.errs = d.consumer.FilteredFirehose(d.config.FirehoseSubscriptionID, authToken, consumer.Metrics)
 }
 
-func (d *InfluxDbFirehoseNozzle) postToInfluxDb() error {
+func (d *InfluxDbFirehoseNozzle) postToInfluxDb(amutex *sync.RWMutex) error {
 	ticker := time.NewTicker(time.Duration(d.config.FlushDurationSeconds) * time.Second)
 	for {
 		select {
@@ -97,7 +101,7 @@ func (d *InfluxDbFirehoseNozzle) postToInfluxDb() error {
 			}
 
 			d.handleMessage(envelope)
-			d.client.AddMetric(envelope)
+			d.client.AddMetric(envelope, amutex)
 		case err := <-d.errs:
 			d.handleError(err)
 			return err

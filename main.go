@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"runtime/pprof"
 	"syscall"
+	"sync"
 
         "github.com/MonsantoCo/influxdb-firehose-nozzle/influxdbfirehosenozzle"
         "github.com/MonsantoCo/influxdb-firehose-nozzle/nozzleconfig"
@@ -46,15 +47,17 @@ func main() {
 	go dumpGoRoutine(threadDumpChan)
 
 	go runServer()
+
 	appmap := make(map[string]cfinstanceinfoapi.AppInfo)
+	amutex := &sync.RWMutex{}
 
 	log.Infof("Capturing events of type: " + config.EventFilter)
 	if (strings.Contains(config.EventFilter,"HttpStartStop") || strings.Contains(config.EventFilter,"ContainerMetric")) {
-		cfinstanceinfoapi.GenAppMap(config, appmap)
-        	go cfinstanceinfoapi.UpdateAppMap(config, appmap)
+                cfinstanceinfoapi.GenAppMap(config, appmap, amutex)
+                go cfinstanceinfoapi.UpdateAppMap(config, appmap, amutex)
 	}
 
-	influxDbNozzle := influxdbfirehosenozzle.NewInfluxDbFirehoseNozzle(config, tokenFetcher, log, appmap)
+	influxDbNozzle := influxdbfirehosenozzle.NewInfluxDbFirehoseNozzle(config, tokenFetcher, log, appmap, amutex)
 	influxDbNozzle.Start()
 }
 

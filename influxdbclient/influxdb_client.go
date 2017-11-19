@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
         "crypto/sha1"
+	//"log"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"time"
 	"sort"
 	"encoding/binary"
+	"sync"
 
         "github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/sonde-go/events"
@@ -33,6 +35,7 @@ type Client struct {
 	totalMetricsSent      uint64
         log                   *gosteno.Logger
 	appinfo               map[string]cfinstanceinfoapi.AppInfo
+	amutex	      	      *sync.RWMutex
 }
 
 type metricKey struct {
@@ -59,7 +62,7 @@ type Point struct {
 	Value     float64
 }
 
-func New(url string, database string, retentionpolicy string, user string, password string, allowSelfSigned bool, prefix string, deployment string, ip string, log *gosteno.Logger, appinfo map[string]cfinstanceinfoapi.AppInfo) *Client {
+func New(url string, database string, retentionpolicy string, user string, password string, allowSelfSigned bool, prefix string, deployment string, ip string, log *gosteno.Logger, appinfo map[string]cfinstanceinfoapi.AppInfo, amutex *sync.RWMutex) *Client {
         ourTags := []string{
 		"deployment:" + deployment,
 		"ip:" + ip,
@@ -78,6 +81,7 @@ func New(url string, database string, retentionpolicy string, user string, passw
 		log:		 log,
 		tagsHash:	 hashTags(ourTags),
 		appinfo:         appinfo,
+		amutex:	 	 amutex,
 	}
 }
 
@@ -85,24 +89,24 @@ func (c *Client) AlertSlowConsumerError() {
 	c.addInternalMetric("slowConsumerAlert", uint64(1))
 }
 
-func (c *Client) AddMetric(envelope *events.Envelope) {
+func (c *Client) AddMetric(envelope *events.Envelope, amutex *sync.RWMutex) {
 	c.totalMessagesReceived++
 
 	switch envelope.GetEventType() {
 	case events.Envelope_CounterEvent:
-		c.AddCounterValueMetric(envelope)
+		c.AddCounterValueMetric(envelope, amutex)
 	case events.Envelope_ValueMetric:
-		c.AddCounterValueMetric(envelope)
+		c.AddCounterValueMetric(envelope, amutex)
 	case events.Envelope_ContainerMetric:
-		c.AddContainerMetric(envelope)
+		c.AddContainerMetric(envelope, amutex)
 	case events.Envelope_HttpStartStop:
-		c.AddHttpStartStopMetric(envelope)
+		c.AddHttpStartStopMetric(envelope, amutex)
 	}
 }
 
-func (c *Client) AddHttpStartStopMetric(envelope *events.Envelope) {
+func (c *Client) AddHttpStartStopMetric(envelope *events.Envelope, amutex *sync.RWMutex) {
 	if envelope.GetHttpStartStop().GetApplicationId() != nil {
-        	tags := parseTags(envelope, c)
+        	tags := parseTags(envelope, c, amutex)
 		types := []string{"httprequest.duration_ms", "httprequest.size_bytes"}
 
 		for v := range types{
@@ -146,9 +150,9 @@ func (c *Client) AddHttpStartStopMetric(envelope *events.Envelope) {
 	}
 }
 
-func (c *Client) AddContainerMetric(envelope *events.Envelope) {
+func (c *Client) AddContainerMetric(envelope *events.Envelope, amutex *sync.RWMutex) {
 	types := []string{"cpu", "mem_bytes", "mem_bytes_quota", "disk_bytes", "disk_bytes_quota"}
-        tags := parseTags(envelope, c)
+        tags := parseTags(envelope, c, amutex)
 
 	for v := range types {
 		switch types[v] {
@@ -232,8 +236,8 @@ func (c *Client) AddContainerMetric(envelope *events.Envelope) {
 }
 
 
-func (c *Client) AddCounterValueMetric(envelope *events.Envelope) {
-	tags := parseTags(envelope, c)
+func (c *Client) AddCounterValueMetric(envelope *events.Envelope, amutex *sync.RWMutex) {
+	tags := parseTags(envelope, c, amutex)
 	key := metricKey{
 		eventType:  envelope.GetEventType(),
 		name:       getName(envelope),
@@ -404,7 +408,7 @@ func getValue(envelope *events.Envelope) float64 {
 	}
 }
 
-func parseTags(envelope *events.Envelope, c *Client) []string {
+func parseTags(envelope *events.Envelope, c *Client, amutex *sync.RWMutex) []string {
 	tags := appendTagIfNotEmpty(nil, "deployment", envelope.GetDeployment())
 	
 	switch envelope.GetEventType() {
@@ -419,9 +423,11 @@ func parseTags(envelope *events.Envelope, c *Client) []string {
 	case events.Envelope_ContainerMetric:
 		tags = appendTagIfNotEmpty(tags, "appguid", envelope.GetContainerMetric().GetApplicationId())
         	tags = appendTagIfNotEmpty(tags, "index", strconv.FormatInt(int64(envelope.GetContainerMetric().GetInstanceIndex()), 10))
+		amutex.RLock()
 		tags = appendTagIfNotEmpty(tags, "appname", c.appinfo[envelope.GetContainerMetric().GetApplicationId()].Name)
                 tags = appendTagIfNotEmpty(tags, "org", c.appinfo[envelope.GetContainerMetric().GetApplicationId()].Org)
                 tags = appendTagIfNotEmpty(tags, "space", c.appinfo[envelope.GetContainerMetric().GetApplicationId()].Space)
+		amutex.RUnlock()
 	case events.Envelope_HttpStartStop:
                 tags = appendTagIfNotEmpty(tags, "appguid", UUIDToString(envelope.GetHttpStartStop().GetApplicationId()))
 		//always 0
@@ -432,9 +438,11 @@ func parseTags(envelope *events.Envelope, c *Client) []string {
                 tags = appendTagIfNotEmpty(tags, "uri", prettyuri[0])	
 		//always the loadbalancer in front of CF so not useful
 		//tags = appendTagIfNotEmpty(tags, "remoteaddress", envelope.GetHttpStartStop().GetRemoteAddress())
+		amutex.RLock()
 		tags = appendTagIfNotEmpty(tags, "appname", c.appinfo[UUIDToString(envelope.GetHttpStartStop().GetApplicationId())].Name)
 		tags = appendTagIfNotEmpty(tags, "org", c.appinfo[UUIDToString(envelope.GetHttpStartStop().GetApplicationId())].Org)
 		tags = appendTagIfNotEmpty(tags, "space", c.appinfo[UUIDToString(envelope.GetHttpStartStop().GetApplicationId())].Space)
+		amutex.RUnlock()
 	}
 
 	for tname, tvalue := range envelope.GetTags() {
